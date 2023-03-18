@@ -1,5 +1,30 @@
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text } from '@metamask/snaps-ui';
+import { authenticator } from 'otplib';
+// import toDataURL from 'qrcode';
+
+// Random not important test secret
+const secret = 'KVKFKRCPNZQUYMLXOVYDSQKJKZDTSRLD';
+
+const token = authenticator.generate(secret);
+/**
+ * Generate a secret code for 2FA.
+ */
+async function generateSecretCode() {
+  try {
+    // or
+    const isValid = authenticator.verify({ token, secret });
+    return isValid;
+  } catch (err) {
+    console.error(err);
+    return err;
+  }
+}
+
+// const generateImage = async () => {
+//   const dataURL = await toDataURL(secret.otpauth_url);
+//   return dataURL;
+// };
 
 /**
  * Handle incoming JSON-RPC requests, sent through `wallet_invokeSnap`.
@@ -14,18 +39,17 @@ import { panel, text } from '@metamask/snaps-ui';
 export const onRpcRequest: OnRpcRequestHandler = ({ origin, request }) => {
   switch (request.method) {
     case 'hello':
-      return snap.request({
-        method: 'snap_dialog',
-        params: {
-          type: 'Confirmation',
-          content: panel([
-            text(`Hello, **${origin}**!`),
-            text('This custom confirmation is just for display purposes.'),
-            text(
-              'But you can edit the snap source code to make it do something, if you want to!',
-            ),
-          ]),
-        },
+      return generateSecretCode().then((testToken) => {
+        return snap.request({
+          method: 'snap_dialog',
+          params: {
+            type: 'Confirmation',
+            content: panel([
+              text(`Hello, **${origin}**!`),
+              text(`${testToken}`),
+            ]),
+          },
+        });
       });
     default:
       throw new Error('Method not found.');
