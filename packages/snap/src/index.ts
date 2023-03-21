@@ -1,3 +1,5 @@
+import { Buffer } from 'buffer';
+globalThis.Buffer = Buffer;
 import { OnRpcRequestHandler } from '@metamask/snaps-types';
 import { panel, text } from '@metamask/snaps-ui';
 import { authenticator } from 'otplib';
@@ -12,8 +14,7 @@ const token = authenticator.generate(secret);
  */
 async function generateSecretCode() {
   try {
-    // or
-    const isValid = authenticator.verify({ token, secret });
+    const isValid = await authenticator.verify({ token, secret });
     return isValid;
   } catch (err) {
     console.error(err);
